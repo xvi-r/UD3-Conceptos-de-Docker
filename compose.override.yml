@@ -1,0 +1,16 @@
+# configuracion para desarrollo local
+# docker compose lo lee automaticamente al hacer docker compose up -d
+
+services:
+  web:
+    # mapeo de puertos para acceder desde localhost:8069 en el navegador
+    ports:
+      - "8069:8069"
+    # carpetas locales montadas para poder programar modulos y persistir los datos
+    volumes:
+      - ./volumesOdoo/addons:/mnt/extra-addons
+      - ./volumesOdoo/odoo/filestore:/var/lib/odoo/filestore
+      - ./volumesOdoo/odoo/sessions:/var/lib/odoo/sessions
+      
+    #comando de desarrollo con recarga en caliente de vistas y codigo sin reiniciar
+    command: --dev=all -d odoo -i base
