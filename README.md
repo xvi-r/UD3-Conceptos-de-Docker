@@ -53,3 +53,20 @@ El archivo compose.yml permite definir toda una infraestructura multi-contenedor
 
 - **Archivos .env**: En lugar de dejar usuarios y contraseñas expuestos directamente en el codigo de compose.yml, se deben extraer a un archivo .env local. Este archivo debe añadirse siempre al .gitignore para no subir credenciales sensibles al repositorio de Git
 - **Docker Secrets**: Es la alternativa mas robusta. Permite inyectar contraseñas mediante archivos montados en memoria en lugar de variables de entorno visibles mediante comandos como docker inspect.
+
+
+---
+
+# Configuración de Odoo
+
+## Comparativa: odoo.conf vs. variables en compose.yml
+
+### ¿Qué diferencias hay entre configurar en un sitio u otro?
+- **compose.yml (environment)**: Se usa para la infraestructura y conectar contenedores entre si (definir el host de la base de datos HOST=db, usuario, contraseña y puertos).
+- **odoo.conf**: Es el archivo interno de Odoo para configurar la aplicacion en sí. Aquí defines las rutas de los módulos (addons_path), la contraseña maestra, los procesos (workers) o filtros de base de datos.
+
+### ¿Qué opción es más segura?
+Es más seguro el odoo.conf. Si pones contraseñas en las variables del compose.yml cualquiera con acceso a Docker puede verlas en texto plano haciendo un simple docker inspect al contenedor. Con odoo.conf, le puedes dar permisos restringidos en Linux (chmod 600) y montarlo como solo lectura en Docker con :ro (que significa read only), evitando que se modifique o se filtre facilmente.
+
+### ¿Y para desarrollar en local, qué es más práctico?
+Es más práctico usar odoo.conf. Si estás programando y metes módulos nuevos, solo tienes que cambiar la linea de addons_path en el archivo desde VSCode sin tener que editar el Compose ni reiniciar toda la infraestructura. El Compose se reserva mas para la conexion de red y levantar el servicio.
