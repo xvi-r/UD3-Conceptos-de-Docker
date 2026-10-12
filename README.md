@@ -54,7 +54,19 @@ El archivo compose.yml permite definir toda una infraestructura multi-contenedor
 ## Gestión segura de variables de entorno y secretos:
 
 - **Archivos .env**: En lugar de dejar usuarios y contraseñas expuestos directamente en el codigo de compose.yml, se deben extraer a un archivo .env local. Este archivo debe añadirse siempre al .gitignore para no subir credenciales sensibles al repositorio de Git
-- **Docker Secrets**: Es la alternativa mas robusta. Permite inyectar contraseñas mediante archivos montados en memoria en lugar de variables de entorno visibles mediante comandos como docker inspect.
+- **Docker Secrets**: Es la alternativa mas robusta. Permite inyectar contraseñas mediante archivos montados en memoria en lugar de variables de entorno visibles mediante comandos como docker inspect. En Compose se puede configurar asi usando nuestra carpeta `secrets/`:
+  ```yaml
+  services:
+    db:
+      environment:
+        - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+      secrets:
+        - db_password
+
+  secrets:
+    db_password:
+      file: ./secrets/postgres_password.txt
+  ```
 
 
 ---
@@ -99,3 +111,47 @@ A la hora de gestionar el proyecto con Git, debemos separar el código fuente de
 
 - **sessions (/var/lib/odoo/sessions) NO se sube al repositorio**:
   - **Por qué**: Guarda los ficheros temporales con las sesiones y tokens de autenticación de los usuarios que inician sesión. Si se sube a Git, cualquiera con acceso al repositorio podría robar esas sesiones y entrar como administrador sin contraseña. Son archivos efímeros que pertenecen al contenedor, no al código.
+
+
+---
+
+# Estructura del Proyecto y Cómo Usarlo
+
+Para montar todo el entorno de forma eficiente y segura como se pide, hemos organizado la configuracion en estos archivos:
+
+- `.gitignore`: evita subir a git las credenciales (.env), las sesiones temporales y el filestore por peso y temas de rgpd
+- `.env.example`: plantilla con las variables de entorno de postgres y odoo para no dejar contraseñas en claro en el compose
+- `secrets/`: carpeta con plantillas (.example) para gestionar contraseñas mediante Docker Secrets sin exponerlas en entorno
+- `config/odoo.conf`: archivo interno de odoo montado como solo lectura (:ro) con la contraseña maestra y la ruta de addons
+- `volumesOdoo/addons/`: carpeta local para desarrollar modulos personalizados que si se versiona en git
+- `compose.yml`: archivo base con la infraestructura comun (odoo:19, postgres:18, red interna y volumenes)
+- `compose.override.yml`: configuracion de desarrollo que docker compose lee solo al hacer `up -d` (abre el puerto 8069, mapea carpetas locales y activa `--dev=all`)
+- `compose.prod.yml`: configuracion para produccion con `restart: always`, limites de memoria ram/cpu y volumenes gestionados
+
+## Puesta en marcha:
+
+1. Primero copiamos la plantilla de entorno:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Damos permisos a la carpeta de addons para poder trabajar sin problemas (como se indica en las diapositivas):
+   ```bash
+   sudo chmod -R 777 volumesOdoo/addons
+   ```
+
+3. **Para arrancar en desarrollo local:**
+   ```bash
+   docker compose up -d
+   ```
+   *(Docker Compose junta automaticamente `compose.yml` y `compose.override.yml`. Puedes entrar desde el navegador en `http://localhost:8069`)*
+
+4. **Para arrancar en produccion:**
+   ```bash
+   docker compose -f compose.yml -f compose.prod.yml up -d
+   ```
+
+5. **Para parar el servicio:**
+   ```bash
+   docker compose down
+   ```
