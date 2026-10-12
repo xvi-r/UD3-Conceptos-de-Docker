@@ -1,5 +1,7 @@
 # Conceptos Fundamentales de Docker
 
+> Nota: Inicialmente hice esta parte en un PDF, pero al final he decidido pasarlo directamente al README porque me pareció más cómodo y práctico para la parte final del proyecto.
+
 ## Comandos de Docker
 
 - `docker run`: Sirve para crear y arrancar un contenedor nuevo partiendo de una imágen.
