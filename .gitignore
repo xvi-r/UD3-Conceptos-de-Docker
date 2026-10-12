@@ -1,0 +1,28 @@
+# archivos de entorno y credenciales sensibles
+.env
+.env.local
+secrets/
+
+# datos dinamicos de odoo no subir por rgpd/lopdgdd y peso
+volumesOdoo/odoo/filestore/
+filestore/
+
+# sesiones temporales de usuarios no versionar por robo de sesion
+volumesOdoo/odoo/sessions/
+sessions/
+
+# datos de postgresql
+volumesOdoo/dataPostgreSQL/
+dataPostgreSQL/
+
+# modulos propios addons si se suben
+!volumesOdoo/addons/
+!volumesOdoo/addons/**
+
+# archivos del sistema y vscode
+.idea/
+.vscode/
+*.pyc
+__pycache__/
+.DS_Store
+Thumbs.db
