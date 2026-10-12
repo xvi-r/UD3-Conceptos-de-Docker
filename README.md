@@ -37,3 +37,19 @@ El archivo compose.yml permite definir toda una infraestructura multi-contenedor
 - **¿Qué es una imagen?**: Una imagen es una plantilla inmutable de solo lectura que contiene el sistema operativo base, las librerías, dependencias y el código de la aplicación necesarios para funcionar. Se construyen por capas y sirven como molde para crear contenedores.
 - **¿Qué es un contenedor?**: Es una instancia en ejecución de una imagen. Funciona como una "cajita" aislada del resto del sistema operativo que comparte el kernel de la maquina anfitriona. Los contenedores son efímeros: si se borran sin haber guardado su estado en un volumen, todos los cambios internos se pierden por completo. Por esto siempre deberias usar los volúmenes si necesitas la persistencia en proyecto
 - **¿Qué es un volumen?**: Es el mecanismo que proporciona Docker para guardar datos de manera persistente fuera del ciclo de vida del contenedor. Permite que, aunque destruyamos o actualicemos los contenedores de Odoo o PostgreSQL, la base de datos y los ficheros subidos por los usuarios se quedan intactos y no se borren.
+
+
+---
+
+# Alternativas de Eficiencia
+
+## Eficiencia en la utilización de recursos:
+
+- **Límites de CPU y RAM**: Por defecto un contenedor puede consumir toda la memoria del host. Mediante deploy.resources.limits en Compose podemos definir topes para evitar caídas del sistema
+- **Optimización de imágenes y caché**: Usar versiones ligeras o imagenes oficiales limpiando paquetes temporales y capas innecesarias para ahorrar espacio en disco.
+- **Workers**: En entornos con pocos recursos, ajustar la configuracion de procesos concurrentes de Odoo para evitar que se sature la CPU de la maquina virtual o del servidor.
+
+## Gestión segura de variables de entorno y secretos:
+
+- **Archivos .env**: En lugar de dejar usuarios y contraseñas expuestos directamente en el codigo de compose.yml, se deben extraer a un archivo .env local. Este archivo debe añadirse siempre al .gitignore para no subir credenciales sensibles al repositorio de Git
+- **Docker Secrets**: Es la alternativa mas robusta. Permite inyectar contraseñas mediante archivos montados en memoria en lugar de variables de entorno visibles mediante comandos como docker inspect.
