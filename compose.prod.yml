@@ -1,0 +1,30 @@
+# configuracion para despliegue en produccion
+# se ejecuta con: docker compose -f compose.yml -f compose.prod.yml up -d
+
+services:
+  web:
+    # politica de reinicio automatico si cae el servicio
+    restart: always
+    # limites de cpu y memoria ram para evitar caidas del servidor
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+    # en produccion se usan volumenes gestionados y addons en solo lectura
+    volumes:
+      - filestore_prod:/var/lib/odoo/filestore
+      - ./volumesOdoo/addons:/mnt/extra-addons:ro
+
+  db:
+    # reinicio automatico de la base de datos
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1024M
+
+#volumen de datos para el filestore en produccion
+volumes:
+  filestore_prod:
