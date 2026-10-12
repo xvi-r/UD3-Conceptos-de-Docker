@@ -70,3 +70,14 @@ Es más seguro el odoo.conf. Si pones contraseñas en las variables del compose.
 
 ### ¿Y para desarrollar en local, qué es más práctico?
 Es más práctico usar odoo.conf. Si estás programando y metes módulos nuevos, solo tienes que cambiar la linea de addons_path en el archivo desde VSCode sin tener que editar el Compose ni reiniciar toda la infraestructura. El Compose se reserva mas para la conexion de red y levantar el servicio.
+
+
+---
+
+# Producción vs. Desarrollo y cómo configurarlo en Compose
+
+La forma más limpia sin duplicar código es usar ficheros override separando la configuración de ambos entornos:
+
+- **`compose.yml` (Base común)**: Contiene lo compartido por ambos entornos, como las imagenes de Odoo y Postgres, la red interna y los volumenes de persistencia de base de datos
+- **`compose.override.yml` (Desarrollo)**: Docker Compose lo lee y aplica solo al hacer `docker compose up -d`. Aquí metemos el mapeo de puertos directos ("8069:8069"), las carpetas locales montadas (addons, filestore, sessions), `workers = 0` para poder depurar sin bloqueos y el comando `--dev=all` para que Odoo recargue los cambios de código Python y vistas XML automáticamente sin reiniciar el contenedor a cada rato.
+- **`compose.prod.yml` (Producción)**: Se usa para el despliegue real en el servidor. Desactiva el modo dev y los datos demo, activa multiples procesos (workers) segun la CPU del servidor, añade politica de reinicio `restart: always` y limites de recursos (CPU/RAM). Ademas no expone el puerto 8069 directo a internet sino que se protege detras de un proxy inverso (Nginx) con SSL.
