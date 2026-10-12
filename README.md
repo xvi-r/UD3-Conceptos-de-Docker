@@ -81,3 +81,19 @@ La forma más limpia sin duplicar código es usar ficheros override separando la
 - **`compose.yml` (Base común)**: Contiene lo compartido por ambos entornos, como las imagenes de Odoo y Postgres, la red interna y los volumenes de persistencia de base de datos
 - **`compose.override.yml` (Desarrollo)**: Docker Compose lo lee y aplica solo al hacer `docker compose up -d`. Aquí metemos el mapeo de puertos directos ("8069:8069"), las carpetas locales montadas (addons, filestore, sessions), `workers = 0` para poder depurar sin bloqueos y el comando `--dev=all` para que Odoo recargue los cambios de código Python y vistas XML automáticamente sin reiniciar el contenedor a cada rato.
 - **`compose.prod.yml` (Producción)**: Se usa para el despliegue real en el servidor. Desactiva el modo dev y los datos demo, activa multiples procesos (workers) segun la CPU del servidor, añade politica de reinicio `restart: always` y limites de recursos (CPU/RAM). Ademas no expone el puerto 8069 directo a internet sino que se protege detras de un proxy inverso (Nginx) con SSL.
+
+
+---
+
+# Gestión y seguridad de directorios de Odoo en el repositorio
+
+A la hora de gestionar el proyecto con Git, debemos separar el código fuente de los datos dinámicos generados por la aplicación:
+
+- **addons (Módulos personalizados) SÍ se sube al repositorio**:
+  - **Por qué**: Aquí se guarda el código fuente de los módulos y desarrollos propios que creamos o adaptamos. Debe estar versionado para poder colaborar, revisar cambios y desplegarlo en otros entornos o en producción.
+
+- **filestore (/var/lib/odoo/filestore) NO se sube al repositorio**:
+  - **Por qué**: Contiene los archivos binarios que suben los usuarios. Subirlo llenaria el repositorio de archivos pesados innecesariamente y ademas es un fallo grave de privacidad y seguridad, ya que expondria datos sensibles y de clientes protegidos por normativas como el RGPD o la LOPDGDD. Estos datos se gestionan mediante copias de seguridad de la máquina o volumenes.
+
+- **sessions (/var/lib/odoo/sessions) NO se sube al repositorio**:
+  - **Por qué**: Guarda los ficheros temporales con las sesiones y tokens de autenticación de los usuarios que inician sesión. Si se sube a Git, cualquiera con acceso al repositorio podría robar esas sesiones y entrar como administrador sin contraseña. Son archivos efímeros que pertenecen al contenedor, no al código.
