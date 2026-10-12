@@ -1,0 +1,40 @@
+# archivo base de docker compose con lo comun para dev y prod
+
+services:
+  #servicio web de odoo
+  web:
+    image: odoo:19
+    depends_on:
+      - db
+    environment:
+      - HOST=db
+      - USER=${USER:-odoo}
+      - PASSWORD=${PASSWORD:-odoo_password_secreta}
+    volumes:
+      # montaje de archivo de configuracion en modo solo lectura
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
+      
+    networks:
+      - odoo-net
+
+  # servicio de base de datos postgresql
+  db:
+    image: postgres:18
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-odoo}
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo_password_secreta}
+    volumes:
+      # volumen persistente de postgresql
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - odoo-net
+
+#volumenes persistentes gestionados por docker
+volumes:
+  db_data:
+
+# red interna bridge para aislar los contenedores
+networks:
+  odoo-net:
+    driver: bridge
