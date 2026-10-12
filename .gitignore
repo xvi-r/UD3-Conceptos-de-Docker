@@ -1,7 +1,9 @@
 # archivos de entorno y credenciales sensibles
 .env
 .env.local
-secrets/
+secrets/*.txt
+!secrets/*.example
+!secrets/.gitkeep
 
 # datos dinamicos de odoo no subir por rgpd/lopdgdd y peso
 volumesOdoo/odoo/filestore/
